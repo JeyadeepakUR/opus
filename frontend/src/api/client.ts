@@ -2,8 +2,10 @@
  * Typed API client for communicating with the Opus backend.
  */
 
-const API_BASE = '/api';
-const AUTH_BASE = '/auth';
+// In production, use VITE_API_URL env var, otherwise use relative paths (proxied in dev)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE = `${API_BASE_URL}/api`;
+const AUTH_BASE = `${API_BASE_URL}/auth`;
 
 /** Agent run summary (from list endpoint) */
 export interface RunSummary {

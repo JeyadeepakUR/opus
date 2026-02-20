@@ -2,6 +2,8 @@
 
 **Opus** is an autonomous AI reasoning agent with a phase-based exploration engine. It takes natural-language questions, intelligently decides which tools to use, gathers evidence from multiple sources (vector store, web, Google Drive), and delivers grounded answers with citations.
 
+> **📦 Ready to deploy?** See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step Render + Vercel deployment guide.
+
 ## 🎯 Key Features
 
 - **Phase-Based Reasoning**: Separates understanding → evidence gathering → structuring → reasoning phases
