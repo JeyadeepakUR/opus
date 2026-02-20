@@ -194,7 +194,7 @@ router.post('/followup', async (req, res) => {
 
         const sources: Array<{ type: 'web' | 'drive' | 'local'; reference: string; label?: string }> = [];
         const internalChunks: Array<{ text: string; score?: number; fileName?: string; driveFileId?: string; chunkIndex?: number }> = [];
-        const externalFindings: Array<{ type: 'web_search' | 'web_scrape'; queryOrUrl: string; content: string }> = [];
+        const externalFindings: Array<{ type: 'web_search' | 'web_scrape'; queryOrUrl: string; content: string; sources: Array<{ type: 'web' | 'drive' | 'local'; reference: string; label?: string }> }> = [];
 
         // Inject chat context as internal knowledge if provided
         if (typeof context === 'string' && context.trim().length > 0) {
@@ -354,14 +354,14 @@ router.post('/followup', async (req, res) => {
                 if (!canRunStep()) break;
                 const searchResult = await runTool('web_search', { query: q });
                 sources.push(...(searchResult.sources || []));
-                externalFindings.push({ type: 'web_search', queryOrUrl: q, content: searchResult.content });
+                externalFindings.push({ type: 'web_search', queryOrUrl: q, content: searchResult.content, sources: (searchResult.sources || []) });
 
                 const results = Array.isArray(searchResult.metadata?.results) ? searchResult.metadata?.results : [];
                 const topResult = results[0];
                 if (topResult?.url && mergedConfig.enabledTools.includes('web_scrape') && canRunStep()) {
                     const scrapeResult = await runTool('web_scrape', { url: topResult.url });
                     sources.push(...(scrapeResult.sources || []));
-                    externalFindings.push({ type: 'web_scrape', queryOrUrl: topResult.url, content: scrapeResult.content });
+                    externalFindings.push({ type: 'web_scrape', queryOrUrl: topResult.url, content: scrapeResult.content, sources: (scrapeResult.sources || []) });
                 }
             }
         }
