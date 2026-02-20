@@ -250,7 +250,7 @@ npm run dev  # Runs backend + frontend
 Then start the ingestion service separately:
 ```bash
 cd backend/ingestion-service
-python main.py  # Or: uvicorn main:app --reload --port 8765
+python main.py  # Or: uvicorn main:app --reload --port 8001
 
 # Windows: .\start.bat
 # Linux/Mac: ./start.sh
@@ -268,13 +268,13 @@ npm run dev  # http://localhost:5173
 
 # Terminal 3: Ingestion Service
 cd backend/ingestion-service
-python main.py  # http://localhost:8765
+python main.py  # http://localhost:8001
 ```
 
 **First Run Checklist:**
 - [ ] Backend running at `http://localhost:3001/api/health`
 - [ ] Frontend running at `http://localhost:5173`
-- [ ] Ingestion service running at `http://localhost:8765/health`
+- [ ] Ingestion service running at `http://localhost:8001/health`
 - [ ] All required API keys configured in `backend/.env`
 - [ ] No CORS errors in browser console
 
@@ -308,7 +308,7 @@ cd backend && npm run test
 **Ingestion service fails:**
 - Verify Python 3.8+ is installed: `python --version`
 - Check all dependencies installed: `pip list`
-- Ensure port 8765 is available
+- Ensure port 8001 is available
 - For Windows: Use `.\start.bat` instead of `python main.py`
 
 **Google Drive not connecting:**
