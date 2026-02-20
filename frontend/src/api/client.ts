@@ -147,9 +147,17 @@ export const api = {
     getRun: (id: string) =>
         request<AgentRun>(`${API_BASE}/agent/run/${id}`),
 
+    /** Delete a specific run */
+    deleteRun: (id: string) =>
+        request<{ message: string }>(`${API_BASE}/agent/run/${id}`, { method: 'DELETE' }),
+
     /** List all runs */
     listRuns: () =>
         request<RunSummary[]>(`${API_BASE}/agent/runs`),
+
+    /** Delete all runs */
+    deleteAllRuns: () =>
+        request<{ message: string; deletedCount: number }>(`${API_BASE}/agent/runs`, { method: 'DELETE' }),
 
     /** Stateless follow-up query */
     followUp: (query: string, config?: Partial<AgentRun['config']>, context?: string) =>

@@ -25,9 +25,16 @@ export class RunStore {
         );
     }
 
-    /** Delete a run */
+    /** Delete a run by ID */
     delete(id: string): boolean {
         return this.runs.delete(id);
+    }
+
+    /** Delete all runs */
+    deleteAll(): number {
+        const count = this.runs.size;
+        this.runs.clear();
+        return count;
     }
 }
 

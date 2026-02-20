@@ -12,6 +12,8 @@ import {
     Search,
     Brain,
     Zap,
+    Trash2,
+    Trash,
 } from 'lucide-react';
 import { api, type RunSummary } from '../api/client';
 
@@ -34,6 +36,8 @@ export default function AgentPage() {
         AVAILABLE_TOOLS.map((t) => t.key)
     );
     const [recentRuns, setRecentRuns] = useState<RunSummary[]>([]);
+    const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
+    const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
     useEffect(() => {
         api.listRuns().then(setRecentRuns).catch(() => { });
@@ -59,6 +63,31 @@ export default function AgentPage() {
         setEnabledTools((prev) =>
             prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
         );
+    };
+
+    const handleDeleteRun = async (runId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (deletingRunId === runId) {
+            try {
+                await api.deleteRun(runId);
+                setRecentRuns((prev) => prev.filter((r) => r.id !== runId));
+                setDeletingRunId(null);
+            } catch (err) {
+                console.error('Failed to delete run:', err);
+            }
+        } else {
+            setDeletingRunId(runId);
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        try {
+            await api.deleteAllRuns();
+            setRecentRuns([]);
+            setShowDeleteAllConfirm(false);
+        } catch (err) {
+            console.error('Failed to delete all runs:', err);
+        }
     };
 
     const getStatusColor = (status: string) => {
@@ -248,15 +277,49 @@ export default function AgentPage() {
             {/* Recent Runs Sidebar */}
             {recentRuns.length > 0 && (
                 <div
-                    className="w-[280px] border-l p-4 overflow-auto hidden lg:block bg-bg-secondary border-border"
+                    className="w-[280px] border-l p-4 overflow-auto hidden lg:block bg-bg-secondary border-border flex flex-col"
                 >
-                    <h3
-                        className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2 text-text-muted"
-                    >
-                        <Clock className="w-3.5 h-3.5" />
-                        Recent Tasks
-                    </h3>
-                    <div className="space-y-2">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3
+                            className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-text-muted"
+                        >
+                            <Clock className="w-3.5 h-3.5" />
+                            Recent Tasks
+                        </h3>
+                        <button
+                            onClick={() => setShowDeleteAllConfirm(true)}
+                            className="p-1 rounded hover:bg-red-500/10 transition-colors"
+                            title="Delete all runs"
+                        >
+                            <Trash className="w-3.5 h-3.5 text-red-500" />
+                        </button>
+                    </div>
+
+                    {showDeleteAllConfirm && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/50"
+                        >
+                            <p className="text-xs text-red-400 mb-2">Delete all {recentRuns.length} runs?</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleDeleteAll}
+                                    className="flex-1 px-2 py-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded transition-colors"
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteAllConfirm(false)}
+                                    className="flex-1 px-2 py-1 text-xs bg-gray-500/20 hover:bg-gray-500/30 text-gray-400 rounded transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    <div className="space-y-2 flex-1">
                         {recentRuns.slice(0, 10).map((run, i) => (
                             <motion.button
                                 key={run.id}
@@ -264,35 +327,50 @@ export default function AgentPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
                                 onClick={() => navigate(`/run/${run.id}`)}
-                                className="w-full text-left p-3 rounded-lg transition-all duration-200 group"
+                                className="w-full text-left p-3 rounded-lg transition-all duration-200 group relative"
                                 style={{ background: 'var(--color-bg-surface)' }}
                                 onMouseEnter={(e) =>
                                     ((e.currentTarget as HTMLElement).style.background = 'var(--color-bg-surface-hover)')
                                 }
-                                onMouseLeave={(e) =>
-                                    ((e.currentTarget as HTMLElement).style.background = 'var(--color-bg-surface)')
-                                }
+                                onMouseLeave={(e) => {
+                                    ((e.currentTarget as HTMLElement).style.background = 'var(--color-bg-surface)');
+                                    if (deletingRunId === run.id) setDeletingRunId(null);
+                                }}
                             >
                                 <div className="flex items-start justify-between">
                                     <p
-                                        className="text-sm leading-snug line-clamp-2"
+                                        className="text-sm leading-snug line-clamp-2 flex-1"
                                         style={{ color: 'var(--color-text-primary)' }}
                                     >
                                         {run.task}
                                     </p>
-                                    <ChevronRight
-                                        className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        style={{ color: 'var(--color-text-muted)' }}
-                                    />
+                                    {deletingRunId === run.id ? (
+                                        <Trash2 className="w-4 h-4 flex-shrink-0 mt-0.5 ml-2 text-red-500" />
+                                    ) : (
+                                        <ChevronRight
+                                            className="w-4 h-4 flex-shrink-0 mt-0.5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            style={{ color: 'var(--color-text-muted)' }}
+                                        />
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-1.5">
-                                    <span
-                                        className="w-1.5 h-1.5 rounded-full"
-                                        style={{ background: getStatusColor(run.status) }}
-                                    />
-                                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                                        {run.stepsCount} steps · {new Date(run.createdAt).toLocaleDateString()}
-                                    </span>
+                                <div className="flex items-center justify-between gap-2 mt-1.5">
+                                    <div className="flex items-center gap-2">
+                                        <span
+                                            className="w-1.5 h-1.5 rounded-full"
+                                            style={{ background: getStatusColor(run.status) }}
+                                        />
+                                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            {run.stepsCount} steps · {new Date(run.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    {deletingRunId === run.id && (
+                                        <button
+                                            onClick={(e) => handleDeleteRun(run.id, e)}
+                                            className="text-xs px-2 py-0.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded transition-colors"
+                                        >
+                                            Confirm
+                                        </button>
+                                    )}
                                 </div>
                             </motion.button>
                         ))}

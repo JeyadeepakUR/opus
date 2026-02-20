@@ -409,6 +409,31 @@ router.get('/runs', (_req, res) => {
 });
 
 /**
+ * DELETE /api/agent/run/:id — Delete a specific run.
+ */
+router.delete('/run/:id', (req, res) => {
+    const { id } = req.params;
+    if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'Run ID is required.' });
+    }
+    
+    const success = runStore.delete(id);
+    if (!success) {
+        return res.status(404).json({ error: `Run ${id} not found.` });
+    }
+    
+    return res.json({ message: `Run ${id} deleted successfully.` });
+});
+
+/**
+ * DELETE /api/agent/runs — Delete all runs.
+ */
+router.delete('/runs', (req, res) => {
+    const count = runStore.deleteAll();
+    return res.json({ message: `Deleted ${count} run(s) from history.`, deletedCount: count });
+});
+
+/**
  * GET /api/agent/vector-store/diagnostics — Check vector store health.
  */
 router.get('/vector-store/diagnostics', (_req, res) => {
