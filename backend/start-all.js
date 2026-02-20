@@ -3,8 +3,12 @@
  * Launches both Node.js backend and Python ingestion service
  */
 
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 console.log('🚀 Starting opus backend + ingestion service...');
 
@@ -14,7 +18,7 @@ const pythonProcess = spawn('python', [
   '--host', '0.0.0.0',
   '--port', process.env.INGESTION_PORT || '8001'
 ], {
-  cwd: path.join(__dirname, 'ingestion-service'),
+  cwd: join(__dirname, 'ingestion-service'),
   stdio: 'inherit'
 });
 
